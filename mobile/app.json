@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Sporcu Şut Takip",
+    "slug": "sporcu-takip",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "sporcu-takip",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0f1419"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sporcutakoip.app"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-asset"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
