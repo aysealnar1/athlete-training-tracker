@@ -94,7 +94,6 @@ Veritabanı ilk çalıştırmada `server/sport.db` dosyasında otomatik oluştur
 | `client/` | React web arayüzü |
 | `server/` | Express API, SQLite erişimi ve sunucu testleri |
 | `mobile/` | Geliştirme aşamasındaki Expo mobil uygulaması |
-| `SutSayaci/` | Korunan Expo başlangıç şablonu; ana web uygulaması için gerekli değildir |
 
 ## Kontroller ve mevcut durum
 
@@ -142,3 +141,7 @@ Mobil kurulum ve API adresi ayarları için [mobil uygulama açıklamasına](mob
 - Mobil uygulamanın cihazda test edilmesi ve web özellikleriyle karşılaştırılması.
 - Kullanım örneklerinin ve yeni özelliklerin belgelenmesi.
 - Üretim ortamı kurulumu ve dağıtımının doğrulanması.
+
+## Geliştirme planı ve kaynak incelemesi
+
+İlk proje kopyasıyla güncel sürümün karşılaştırılması ve geliştirme sırası [inceleme notlarında](docs/gelistirme-plani.md) açıklanmıştır.
