@@ -64,6 +64,18 @@ test('authentication and coach isolation', { timeout: 30000 }, async t => {
     assert.equal((await request(`/trainings/${training}`,'PUT',{records:[{shot_type:'Sabit Catch & Shoot',points:[{x:50,y:50}],attempted:10,made:6}]},firstCookie)).status,200);
     assert.equal((await request(`/athletes/${athlete}/stats`,'GET',undefined,firstCookie)).data.progression[0].pct,60);
   });
+  await t.test('route modules preserve branches, athlete search and training lists', async () => {
+    assert.deepEqual((await request('/branches','GET',undefined,firstCookie)).data,['Basketbol','Voleybol']);
+    const list=await request('/athletes?branch=Basketbol&q=Synthetic','GET',undefined,firstCookie);
+    assert.equal(list.status,200);assert.equal(list.data.length,1);assert.equal(list.data[0].id,athlete);
+    const detail=await request(`/athletes/${athlete}`,'GET',undefined,firstCookie);
+    assert.equal(detail.status,200);assert.equal(detail.data.name,'Synthetic');
+    const sessions=await request(`/athletes/${athlete}/trainings`,'GET',undefined,firstCookie);
+    assert.equal(sessions.status,200);assert.equal(sessions.data.length,1);
+    assert.equal(sessions.data[0].id,training);assert.equal(sessions.data[0].record_count,1);
+    assert.deepEqual((await request('/stats/branch/Voleybol','GET',undefined,firstCookie)).data,
+      {monthlyTrend:[],shotTypeDistribution:[],ageGroupSuccess:[]});
+  });
   await t.test('unknown ages stay separate and zero percent keeps attempt counts', async () => {
     let stats=(await request('/stats/branch/Basketbol','GET',undefined,firstCookie)).data;
     assert.equal(stats.ageGroupSuccess.find(g=>g.name==='Yaş Bilinmiyor').totalAttempted,10);
