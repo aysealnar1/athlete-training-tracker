@@ -338,3 +338,86 @@ a:hover {
   z-index: 102;
   backdrop-filter: blur(2px);
 }
+/* Antrenman ekranı: eşit düğme yükseklikleri ve rahat işlem aralıkları. */
+.training-page .btn {
+  min-height: 44px;
+  min-width: 104px;
+  padding: 0.65rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.training-page .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.training-page .training-secondary {
+  background: var(--surface);
+  color: #e5e7eb;
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: none;
+}
+
+.training-page .training-secondary:hover:not(:disabled) {
+  background: #293548;
+  border-color: var(--accent);
+}
+
+.training-page .btn:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.training-step-card {
+  width: 420px;
+  max-width: calc(100% - 2rem);
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+.training-step-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.training-step-primary {
+  grid-column: 1 / -1;
+}
+
+.training-record-actions,
+.training-leave-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.875rem;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.training-leave-actions {
+  margin-top: 1.25rem;
+  margin-bottom: 0;
+}
+
+@media (max-width: 480px) {
+  .training-step-card {
+    padding: 1rem;
+  }
+
+  .training-step-actions {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .training-leave-actions .btn {
+    flex: 1 1 100%;
+  }
+}

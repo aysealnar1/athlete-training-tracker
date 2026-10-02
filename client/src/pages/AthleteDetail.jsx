@@ -4,6 +4,7 @@ import { api } from '../api';
 import { CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, XAxis, YAxis } from 'recharts';
 import AthletePersonalFields, { ageFromBirthDate } from '../components/AthletePersonalFields';
 import SuccessChart from '../components/SuccessChart';
+import { formatTrainingTime, trainingDateKey } from '../utils/training-time';
 
 function openDatePicker(input) {
   if (!input) return;
@@ -114,7 +115,7 @@ export default function AthleteDetail() {
   }, []);
 
   const filteredTrainings = trainings.filter((tr) => {
-    const d = tr.created_at?.slice(0, 10) || '';
+    const d = trainingDateKey(tr.created_at);
 
     if (dateFrom && d < dateFrom) return false;
     if (dateTo && d > dateTo) return false;
@@ -402,7 +403,7 @@ export default function AthleteDetail() {
                   }}
                 >
                   {filteredTrainings.length - i}. Antrenman —{' '}
-                  {tr.created_at?.slice(0, 16).replace('T', ' ')}
+                  {formatTrainingTime(tr.created_at)}
                 </div>
               ))
             )}

@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate, Link, useBlocker } from 'react-router-dom';
 import { api } from '../api';
 import CourtMap from '../components/CourtMap';
+import { trainingPayload, recordsSnapshot, parseShotCount, replaceRecord } from '../utils/training-records';
 
 const SHOT_TYPES = [
   { id: 'Sabit Catch & Shoot', label: 'Sabit Catch & Shoot', maxPoints: 1 },
@@ -29,6 +30,32 @@ export default function Training() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [savedSnapshot, setSavedSnapshot] = useState(recordsSnapshot([]));
+  const allowNavigation = useRef(false);
+  const pendingCreation = useRef(null);
+  const leaveDialog = useRef(null);
+  const hasDraft = currentType !== null;
+  const hasUnsavedChanges = recordsSnapshot(records) !== savedSnapshot || hasDraft;
+  const blocker = useBlocker(() => !allowNavigation.current && (saving || hasUnsavedChanges));
+
+  useEffect(() => {
+    const warnBeforeUnload = event => {
+      if (!allowNavigation.current && (hasUnsavedChanges || saving)) {
+        event.preventDefault();
+        event.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', warnBeforeUnload);
+    return () => window.removeEventListener('beforeunload', warnBeforeUnload);
+  }, [hasUnsavedChanges, saving]);
+
+  useEffect(() => {
+    if (blocker.state === 'blocked' && leaveDialog.current && !leaveDialog.current.open) {
+      leaveDialog.current.showModal();
+    }
+  }, [blocker.state]);
+
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth <= 768;
@@ -48,57 +75,91 @@ export default function Training() {
 
   useEffect(() => {
     if (!athleteId) return;
-
-    api.getAthlete(athleteId).then(setAthlete).catch(() => navigate('/'));
-
-    if (!isNew) {
-      Promise.all([
-        api.getTraining(trainingId),
-        api.getTrainings(athleteId),
-      ])
-        .then(([t, list]) => {
-          setTraining(t);
-
-          setRecords(
-            (t.records || []).map((r) => ({
-              ...r,
-              points:
-                typeof r.points_json === 'string'
-                  ? JSON.parse(r.points_json || '[]')
-                  : r.points_json || [],
-            }))
-          );
-
-          const idx = list.findIndex((tr) => String(tr.id) === String(trainingId));
-          setTrainingNumber(idx >= 0 ? list.length - idx : null);
-        })
-        .catch(() => navigate(`/athlete/${athleteId}`));
-    } else {
-      api.createTraining(athleteId)
-        .then((t) => {
-          setTraining(t);
-          setTrainingNumber('Yeni');
-        })
-        .catch(() => navigate(`/athlete/${athleteId}`));
-    }
+    let cancelled = false;
+    if (!isNew) pendingCreation.current = null;
+    setLoading(true);
+    allowNavigation.current = false;
+    const load = async () => {
+      try {
+        // Reuse the creation promise during StrictMode's effect replay.
+        if (isNew && pendingCreation.current?.athleteId !== athleteId) {
+          pendingCreation.current = {athleteId, promise: api.createTraining(athleteId)};
+        }
+        const [person, t, list] = await Promise.all([
+          api.getAthlete(athleteId),
+          isNew ? pendingCreation.current.promise : api.getTraining(trainingId),
+          isNew ? Promise.resolve([]) : api.getTrainings(athleteId),
+        ]);
+        if (cancelled) return;
+        const loaded = (t.records || []).map(r => ({
+          ...r,
+          points: typeof r.points_json === 'string' ? JSON.parse(r.points_json || '[]') : r.points_json || [],
+        }));
+        setAthlete(person);
+        setTraining(t);
+        setRecords(loaded);
+        setSavedSnapshot(recordsSnapshot(loaded));
+        resetDraft();
+        const idx = list.findIndex(tr => String(tr.id) === String(trainingId));
+        setTrainingNumber(isNew ? 'Yeni' : idx >= 0 ? list.length - idx : null);
+        setLoading(false);
+      } catch (err) {
+        if (!cancelled) {
+          alert(err.message);
+          navigate(`/athlete/${athleteId}`);
+        }
+      }
+    };
+    load();
+    return () => { cancelled = true; };
   }, [athleteId, trainingId, isNew, navigate]);
 
-  useEffect(() => {
-    if (athlete && training) {
-      setLoading(false);
-    }
-  }, [athlete, training]);
+  function resetDraft() {
+    setCurrentType(null);
+    setCurrentPoints([]);
+    setAttemptedInput('');
+    setMadeInput('');
+    setEditingIndex(null);
+    setStep('select');
+  }
+
+  const discardDraft = () => {
+    if (hasDraft && !window.confirm('Tamamlanmamış şut kaydını iptal etmek istiyor musunuz?')) return false;
+    resetDraft();
+    return true;
+  };
+
+  const editRecord = index => {
+    if (saving || !discardDraft()) return;
+    const record = records[index];
+    setEditingIndex(index);
+    setCurrentType(record.shot_type);
+    setCurrentPoints((record.points || []).map(point => ({...point})));
+    setAttemptedInput(String(record.attempted));
+    setMadeInput(String(record.made));
+    setStep('select');
+  };
+
+  const deleteRecord = index => {
+    if (saving || !window.confirm('Bu şut kaydı listeden silinsin mi? Değişiklik Kaydet düğmesiyle uygulanır.')) return;
+    setRecords(previous => previous.filter((_, position) => position !== index));
+    if (editingIndex === index) resetDraft();
+    else if (editingIndex !== null && editingIndex > index) setEditingIndex(editingIndex - 1);
+  };
 
   const addPoint = (coord) => {
+    if (saving || !currentType) return;
     const typeConfig = SHOT_TYPES.find((t) => t.id === currentType);
     const max = typeConfig?.maxPoints;
 
+    if (currentPoints.length >= 1000) return;
     if (max !== null && currentPoints.length >= max) return;
 
     setCurrentPoints((prev) => [...prev, coord]);
   };
 
   const goNext = () => {
+    if (saving) return;
     if (step === 'select') {
       if (!currentType) return;
 
@@ -117,55 +178,45 @@ export default function Training() {
     } else if (step === 'points') {
       setStep('attempted');
     } else if (step === 'attempted') {
-      const n = parseInt(attemptedInput, 10);
+      const n = parseShotCount(attemptedInput);
 
-      if (isNaN(n) || n < 0) {
-        alert('Geçerli bir sayı girin.');
+      if (n === null) {
+        alert('0 ile 1.000.000 arasında bir tam sayı girin.');
         return;
       }
 
       setStep('made');
     } else if (step === 'made') {
-      const attempted = parseInt(attemptedInput, 10);
-      const made = parseInt(madeInput, 10);
+      const attempted = parseShotCount(attemptedInput);
+      const made = parseShotCount(madeInput);
 
-      if (isNaN(made) || made < 0 || made > attempted) {
+      if (attempted === null || made === null || made > attempted) {
         alert('İsabetli sayısı 0 ile atılan şut sayısı arasında olmalıdır.');
         return;
       }
 
-      setRecords((prev) => [
-        ...prev,
-        {
-          shot_type: currentType,
-          points: [...currentPoints],
-          attempted,
-          made,
-        },
-      ]);
-
-      setCurrentType(null);
-      setCurrentPoints([]);
-      setAttemptedInput('');
-      setMadeInput('');
-      setStep('select');
+      const record = {shot_type: currentType, points: [...currentPoints], attempted, made};
+      setRecords(previous => editingIndex === null
+        ? [...previous, record]
+        : replaceRecord(previous, editingIndex, record));
+      resetDraft();
     }
   };
 
   const handleSave = async () => {
-    if (!training?.id) return;
+    if (!training?.id || saving) return;
+    if (hasDraft) {
+      alert('Önce şut kaydını tamamlayın veya Kaydı İptal Et düğmesine basın.');
+      return;
+    }
 
     setSaving(true);
 
     try {
-      const payload = records.map((r) => ({
-        shot_type: r.shot_type,
-        points: r.points || [],
-        attempted: r.attempted,
-        made: r.made,
-      }));
-
+      const payload = trainingPayload(records);
       await api.saveTraining(training.id, payload);
+      setSavedSnapshot(recordsSnapshot(records));
+      allowNavigation.current = true;
       navigate(`/athlete/${athleteId}`);
     } catch (err) {
       alert(err.message);
@@ -183,7 +234,7 @@ export default function Training() {
   }
 
   return (
-    <div className="page" style={{ flexDirection: 'column' }}>
+    <div className="page training-page" style={{ flexDirection: 'column' }}>
       <header
         style={{
           display: 'flex',
@@ -249,7 +300,7 @@ export default function Training() {
           type="button"
           className="btn"
           onClick={handleSave}
-          disabled={saving}
+          disabled={saving || hasDraft}
           style={{ flexShrink: 0 }}
         >
           {saving ? 'Kaydediliyor...' : 'Kaydet'}
@@ -329,7 +380,7 @@ export default function Training() {
                 borderColor: currentType === t.id ? 'var(--accent)' : undefined,
               }}
               onClick={() => {
-                if (step !== 'select') return;
+                if (saving || step !== 'select' || (hasDraft && !discardDraft())) return;
 
                 setCurrentType(t.id);
                 setCurrentPoints([]);
@@ -362,16 +413,20 @@ export default function Training() {
           }}
           className="training-main"
         >
+          <p role="status" style={{margin: 0}}>
+            {editingIndex !== null ? `${editingIndex + 1}. şut kaydı düzenleniyor. ` : ''}
+            {hasDraft ? 'Kaydı tamamlayın veya iptal edin; ardından antrenmanı kaydedin.' : hasUnsavedChanges ? 'Kaydedilmemiş değişiklikler var.' : 'Kayıtlar güncel.'}
+          </p>
           <div style={{ flex: 1, minHeight: 360, position: 'relative' }} className="court-wrap">
             <CourtMap
               points={currentPoints}
               onPointAdd={addPoint}
               maxPoints={
                 currentType
-                  ? SHOT_TYPES.find((t) => t.id === currentType)?.maxPoints ?? 2
+                  ? SHOT_TYPES.find((t) => t.id === currentType)?.maxPoints
                   : 0
               }
-              disabled={!currentType || step !== 'select'}
+              disabled={saving || !currentType || step !== 'select'}
             />
 
             {(step === 'attempted' || step === 'made') && (
@@ -388,24 +443,21 @@ export default function Training() {
                 onClick={(e) => e.stopPropagation()}
               >
                 <div
-                  className="card"
-                  style={{
-                    minWidth: 280,
-                    maxWidth: '90%',
-                    padding: '1.5rem',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-                  }}
+                  className="card training-step-card"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {step === 'attempted' && (
                     <>
-                      <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                      <label htmlFor="shot-attempted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
                         Kaç şut atıldı?
                       </label>
 
                       <input
+                        id="shot-attempted"
                         type="number"
                         min="0"
+                        max="1000000"
+                        step="1"
                         autoFocus
                         value={attemptedInput}
                         onChange={(e) => setAttemptedInput(e.target.value)}
@@ -422,14 +474,16 @@ export default function Training() {
 
                   {step === 'made' && (
                     <>
-                      <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                      <label htmlFor="shot-made" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
                         Kaç tanesi isabetli?
                       </label>
 
                       <input
+                        id="shot-made"
                         type="number"
                         min="0"
-                        max={attemptedInput || 999}
+                        max={attemptedInput || 0}
+                        step="1"
                         autoFocus
                         value={madeInput}
                         onChange={(e) => setMadeInput(e.target.value)}
@@ -454,9 +508,13 @@ export default function Training() {
                     </>
                   )}
 
-                  <button type="button" className="btn" onClick={goNext} style={{ width: '100%' }}>
-                    Sıradaki
-                  </button>
+                  <div className="training-step-actions">
+                    <button type="button" className="btn training-step-primary" onClick={goNext}>
+                      {step === 'made' ? (editingIndex === null ? 'Listeye Ekle' : 'Değişikliği Uygula') : 'Sıradaki'}
+                    </button>
+                    <button type="button" className="btn training-secondary" onClick={() => setStep(step === 'made' ? 'attempted' : 'select')}>Önceki Adım</button>
+                    <button type="button" className="btn training-secondary" onClick={discardDraft}>Kaydı İptal Et</button>
+                  </div>
                 </div>
               </div>
             )}
@@ -482,6 +540,13 @@ export default function Training() {
               </p>
             )}
 
+            {currentType && step === 'select' && (
+              <>
+                <button type="button" className="btn training-secondary" disabled={saving || !currentPoints.length} onClick={() => setCurrentPoints(previous => previous.slice(0,-1))}>Son Noktayı Geri Al</button>
+                <button type="button" className="btn training-secondary" disabled={saving || !currentPoints.length} onClick={() => setCurrentPoints([])}>Noktaları Temizle</button>
+                <button type="button" className="btn training-secondary" disabled={saving} onClick={discardDraft}>Kaydı İptal Et</button>
+              </>
+            )}
             {step === 'select' && (
               <button type="button" className="btn" onClick={goNext} style={{ marginLeft: 'auto' }}>
                 Sıradaki
@@ -498,7 +563,11 @@ export default function Training() {
               <ul style={{ listStyle: 'none', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
                 {records.map((r, i) => (
                   <li key={i} className="animate-fade-in-up" style={{ padding: '0.25rem 0' }}>
-                    {r.shot_type}: {r.made}/{r.attempted} isabet
+                    <span>{i + 1}. {r.shot_type}: {r.made}/{r.attempted} isabet</span>
+                    <div className="training-record-actions">
+                      <button type="button" className="btn" disabled={saving} onClick={() => editRecord(i)} aria-label={`${i + 1}. şut kaydını düzenle`}>Düzenle</button>
+                      <button type="button" className="btn btn-danger" disabled={saving} onClick={() => deleteRecord(i)} aria-label={`${i + 1}. şut kaydını sil`}>Sil</button>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -506,6 +575,17 @@ export default function Training() {
           )}
         </main>
       </div>
+      {blocker.state === 'blocked' && (
+        <dialog ref={leaveDialog} onCancel={event => {event.preventDefault(); blocker.reset();}}
+          aria-labelledby="leave-training-title" style={{margin: 'auto', padding: '1.5rem', maxWidth: '90vw', borderRadius: 12, background: 'var(--surface)', color: 'var(--text)'}}>
+          <h2 id="leave-training-title" style={{fontSize: '1.15rem'}}>Kaydetmeden çıkılsın mı?</h2>
+          <p>{saving ? 'Kaydetme işlemi devam ediyor. Lütfen bekleyin.' : 'Şut kayıtlarındaki değişiklikler ve tamamlanmamış kayıt kaybolacak.'}</p>
+          <div className="training-leave-actions">
+            <button autoFocus type="button" className="btn training-secondary" onClick={() => blocker.reset()}>Sayfada Kal</button>
+            <button type="button" className="btn" disabled={saving} onClick={() => blocker.proceed()}>Kaydetmeden Çık</button>
+          </div>
+        </dialog>
+      )}
     </div>
   );
 }
