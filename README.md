@@ -11,11 +11,16 @@ Bu depoda çalışan web uygulaması, Node.js API sunucusu ve geliştirme aşama
 - Branşa göre sporcu listeleme ve isme göre arama.
 - Sporcu ekleme ve düzenleme: ad, soyad, boy, kilo, yağ oranı, doğum tarihi ve cinsiyet.
 - Doğum tarihini takvimden seçme ve yaşın otomatik hesaplanması.
-- Sporcu detayları, antrenman oluşturma ve mevcut şut kayıtlarını düzenleme.
+- Sporcu detayları, antrenman oluşturma ve şut kayıtlarını ayrı ayrı düzenleme veya silme.
+- Kaydedilmemiş değişikliklerle sayfadan ayrılırken uyarı; kaydı iptal ederek son kaydedilen verileri koruma.
 - Saha üzerinde şut noktalarını işaretleme; şut türü, deneme ve isabet sayısı kaydetme.
-- Antrenman listesini başlangıç ve bitiş tarihlerini takvimden seçerek filtreleme.
+- Başlangıç ve bitiş tarihlerini takvimden seçerek antrenman listesini, gelişim grafiğini ve şut türü grafiğini birlikte filtreleme.
+- Antrenman saatlerini ve tarih filtrelerini Türkiye saatine göre gösterme.
+- Şut denemesi olmayan antrenmanları listede tutup gelişim grafiğinden çıkarma; gerçek %0 isabet sonuçlarını grafikte koruma.
 - Sporcu gelişimi, aylık performans, şut türü ve yaş grubu başarı grafikleri.
 - SQLite ile kayıtların uygulama kapatıldıktan sonra da saklanması.
+- Küçük ekranlara uyarlanan web menüleri, formlar ve antrenman düğmeleri.
+- Panel, sporcu ve antrenman sayfalarını ihtiyaç olduğunda yükleme.
 
 ## Ekran görüntüleri
 
@@ -62,7 +67,7 @@ Proje ekip çalışması olarak geliştirilmiştir. Bu depo, **Ayşe Gül Alnar�
 - **Ayşe Gül Alnar:** Frontend arayüzleri, tasarım, analiz ve veri görselleştirme ekranları, API entegrasyonu ve bu sürümün son düzenlemeleri.
 - **Efe Telimen:** Projenin başlangıcındaki backend ve veritabanı çalışmaları; proje raporlarında bu alanların görev sorumluluğu.
 
-Bu açıklama ekipteki görev dağılımını belirtir; depodaki bütün kodun tek kişi tarafından yazıldığı anlamına gelmez. İlk proje sonrasında oturum ve veri doğrulama kontrolleri, tarih seçimi ve kişisel bilgi alanları ile yayın hazırlığı AI desteğiyle geliştirilmiştir.
+Bu açıklama ekipteki görev dağılımını belirtir; depodaki bütün kodun tek kişi tarafından yazıldığı anlamına gelmez. İlk proje sonrasında oturum ve veri doğrulama kontrolleri, tarih seçimi ve kişisel bilgi alanları, sunucu modülleri, şut kaydı düzenleme/silme, analiz filtreleri, küçük ekran düzenlemeleri, sayfa yükleme ve yayın hazırlığı AI desteğiyle geliştirilmiştir.
 
 ## Yerel kurulum
 
@@ -94,28 +99,26 @@ Veritabanı ilk çalıştırmada `server/sport.db` dosyasında otomatik oluştur
 | `client/` | React web arayüzü |
 | `server/` | Express API, SQLite erişimi ve sunucu testleri |
 | `mobile/` | Geliştirme aşamasındaki Expo mobil uygulaması |
+| `shared/` | Web ve sunucunun ortak Türkiye saati yardımcıları |
+| `docs/` | Ekran görüntüleri, geliştirme ve doğrulama notları |
 
 ## Kontroller ve mevcut durum
 
-Sunucu testlerini çalıştırmak için proje ana klasöründen:
+Tüm komutları proje ana klasöründeki aynı terminalden çalıştırın:
 
 ```sh
-cd server
-npm test
+npm test --prefix server
+node --test client/tests/*.test.js
+npm run build --prefix client
 ```
 
-Web derlemesini kontrol etmek için proje ana klasöründen:
+2 Ekim 2026 doğrulamasında **20 sunucu testi ve 6 web yardımcı işlev testi geçti**; web üretim derlemesi tamamlandı. Sunucu testleri geçici veritabanları kullanır; mevcut sporcu kayıtlarını değiştirmez. Bu testler tarayıcı arayüz testleri değildir.
 
-```sh
-cd client
-npm run build
-```
+Yerel tarayıcı kontrollerinde sporcu ekleme/düzenleme, otomatik yaş, cinsiyet, takvimle filtreleme, şut kaydı düzenleme/silme, kaydedilmemiş değişiklik uyarısı, iptal sonrası kayıtların korunması ve antrenman adresinde sayfa yenileme kontrol edildi. Çıkış ve yeniden giriş sonrası kayıtlar korundu; çıkıştan sonra geri düğmesiyle korumalı panele erişilemedi.
 
-Son yerel doğrulamada **18 sunucu testi geçti** ve web üretim derlemesi tamamlandı. Testler geçici veritabanları kullanır; mevcut sporcu kayıtlarını değiştirmez.
+Chrome'un 390 × 608 ekran benzetiminde menüler, sporcu düzenleme formu ve antrenman düğmeleri kontrol edildi. Bu kontrol gerçek telefon veya tüm ekran boyutlarının testi değildir. Mobil uygulamanın fiziksel cihaz testi ve üretim ortamına dağıtım henüz doğrulanmamıştır.
 
-Tarayıcıda sporcu ekleme ve düzenleme, doğum tarihinden yaş hesaplama, cinsiyet seçimi, antrenman kaydı, grafikler, takvimle tarih filtreleme, çıkış ve yeniden giriş sonrası kayıtların korunması kontrol edildi. Çıkıştan sonra tarayıcının geri düğmesiyle korumalı panele erişilemediği de kontrol edildi.
-
-Antrenman düzenleme ve silme akışlarının kapsamlı arayüz kontrolü, küçük ekranlarda görünüm kontrolü ve mobil fiziksel cihaz testi sonraki geliştirme işleridir. Üretim ortamına dağıtım henüz doğrulanmamıştır.
+Sayfaların ihtiyaç olduğunda yüklenmesiyle başlangıç JavaScript dosyası 680,45 kB’den 251,47 kB’ye (gzip: 199,90 kB’den 82,81 kB’ye) düştü; 500 kB paket uyarısı kalktı. Bu ölçüm gerçek ağda açılış süresi ölçümü değildir. Ayrıntılar [sayfa yükleme notlarında](docs/sayfa-yukleme.md).
 
 ## Oturum ve veri kontrolleri
 
@@ -136,12 +139,19 @@ Mobil kurulum ve API adresi ayarları için [mobil uygulama açıklamasına](mob
 
 ## Sonraki geliştirmeler
 
-- Antrenman düzenleme, silme ve hata mesajlarının arayüzde kontrol edilmesi.
-- Telefon ve tablet boyutlarında web arayüzünün iyileştirilmesi.
+- Web görünümünün farklı telefon ve tablet boyutlarında ve gerçek cihazlarda kontrol edilmesi.
+- Klavye erişimi, okunabilirlik ve hata mesajlarının iyileştirilmesi.
 - Mobil uygulamanın cihazda test edilmesi ve web özellikleriyle karşılaştırılması.
-- Kullanım örneklerinin ve yeni özelliklerin belgelenmesi.
+- Yeni özellikleri gösteren ekran görüntülerinin güncellenmesi.
 - Üretim ortamı kurulumu ve dağıtımının doğrulanması.
 
 ## Geliştirme planı ve kaynak incelemesi
 
 İlk proje kopyasıyla güncel sürümün karşılaştırılması ve geliştirme sırası [inceleme notlarında](docs/gelistirme-plani.md) açıklanmıştır.
+
+Uygulanan değişikliklerin ayrıntıları:
+
+- [Sunucu yapısı](docs/sunucu-yapisi.md)
+- [Şut kayıtları ve kaydedilmemiş değişiklikler](docs/antrenman-kayitlari.md)
+- [Analiz tarih filtresi](docs/analiz-tarih-filtresi.md)
+- [Sayfaların ihtiyaç olduğunda yüklenmesi](docs/sayfa-yukleme.md)
