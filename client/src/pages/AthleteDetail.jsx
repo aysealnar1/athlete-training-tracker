@@ -31,6 +31,8 @@ export default function AthleteDetail() {
   const [athlete, setAthlete] = useState(null);
   const [trainings, setTrainings] = useState([]);
   const [stats, setStats] = useState({ progression: [], shotTypeDistribution: [] });
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [editModal, setEditModal] = useState(false);
@@ -58,19 +60,13 @@ export default function AthleteDetail() {
     setLoading(true);
 
     try {
-      const [a, t, s] = await Promise.all([
+      const [a, t] = await Promise.all([
         api.getAthlete(id),
         api.getTrainings(id),
-        api.getAthleteStats(id),
       ]);
 
       setAthlete(a);
       setTrainings(t || []);
-
-      setStats({
-        progression: s?.progression || [],
-        shotTypeDistribution: s?.shotTypeDistribution || [],
-      });
 
       setEditForm(
         a
@@ -96,6 +92,24 @@ export default function AthleteDetail() {
   useEffect(() => {
     load();
   }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    let active = true;
+    setStatsLoading(true);
+    setStatsError('');
+    setStats({progression: [], shotTypeDistribution: []});
+    if (dateFrom && dateTo && dateFrom > dateTo) {
+      setStatsError('Başlangıç tarihi bitiş tarihinden sonra olamaz.');
+      setStatsLoading(false);
+      return;
+    }
+    api.getAthleteStats(id, dateFrom, dateTo)
+      .then(result => { if (active) setStats(result); })
+      .catch(error => { if (active) setStatsError(error.message); })
+      .finally(() => { if (active) setStatsLoading(false); });
+    return () => { active = false; };
+  }, [id, dateFrom, dateTo]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -366,6 +380,8 @@ export default function AthleteDetail() {
                 }}
               />
               <button type="button" className="btn btn-ghost" onClick={() => openDatePicker(document.getElementById("dateTo"))}>Takvim Aç</button>
+              <p style={{fontSize: '0.85rem', color: 'var(--text-muted)'}}>Tarih aralığı antrenman listesini ve iki analiz grafiğini filtreler.</p>
+              {(dateFrom || dateTo) && <button type="button" className="btn btn-ghost" onClick={() => {setDateFrom(''); setDateTo('');}}>Tarih Filtresini Temizle</button>}
             </div>
           </div>
         </div>
@@ -389,7 +405,7 @@ export default function AthleteDetail() {
                 Antrenman yok.
               </p>
             ) : (
-              filteredTrainings.map((tr, i) => (
+              filteredTrainings.map((tr) => (
                 <div
                   key={tr.id}
                   className="list-item"
@@ -402,7 +418,7 @@ export default function AthleteDetail() {
                     padding: '0.5rem',
                   }}
                 >
-                  {filteredTrainings.length - i}. Antrenman —{' '}
+                  {trainings.length - trainings.findIndex(training => training.id === tr.id)}. Antrenman —{' '}
                   {formatTrainingTime(tr.created_at)}
                 </div>
               ))
@@ -514,9 +530,10 @@ export default function AthleteDetail() {
           <h3 style={{ marginBottom: '0.75rem', fontWeight: 600 }}>
             Şut İsabet Yüzdesi Gelişimi
           </h3>
+          <p style={{fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.75rem'}}>Şut denemesi olmayan antrenmanlar grafiğe dahil edilmez; antrenman listesinde korunur.</p>
 
           <div style={{ height: 260, width: '100%' }}>
-            {stats.progression && stats.progression.length ? (
+            {statsLoading ? <p role="status">Analiz yükleniyor…</p> : statsError ? <p role="alert">{statsError}</p> : stats.progression && stats.progression.length ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={stats.progression}>
                   <defs>
@@ -545,7 +562,7 @@ export default function AthleteDetail() {
                   />
 
                   <Tooltip
-                    formatter={(v) => [v + '%', 'İsabet Oranı']}
+                    formatter={(v, name, item) => [`${v}% (${item.payload.totalMade}/${item.payload.totalAttempted})`, 'İsabet Oranı']}
                     contentStyle={{
                       background: '#1a1a1a',
                       border: '1px solid #333',
@@ -578,7 +595,7 @@ export default function AthleteDetail() {
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <p style={{ color: 'var(--text-muted)' }}>Henüz antrenman verisi yok.</p>
+              <p style={{ color: 'var(--text-muted)' }}>Seçilen tarih aralığında şut denemesi yok.</p>
             )}
           </div>
         </div>
@@ -589,10 +606,10 @@ export default function AthleteDetail() {
           </h3>
 
           <div style={{ height: 260, width: '100%' }}>
-            {stats.shotTypeDistribution && stats.shotTypeDistribution.length ? (
+            {statsLoading ? <p role="status">Analiz yükleniyor…</p> : statsError ? <p role="alert">{statsError}</p> : stats.shotTypeDistribution && stats.shotTypeDistribution.length ? (
               <SuccessChart data={stats.shotTypeDistribution.map(item => ({ ...item, name: SHOT_LABELS[item.name] || item.name }))} />
             ) : (
-              <p style={{ color: 'var(--text-muted)' }}>Henüz veri yok.</p>
+              <p style={{ color: 'var(--text-muted)' }}>Seçilen tarih aralığında şut denemesi yok.</p>
             )}
           </div>
         </div>

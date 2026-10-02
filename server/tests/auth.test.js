@@ -117,6 +117,32 @@ test('authentication and coach isolation', { timeout: 30000 }, async t => {
       assert.deepEqual((await request(`/trainings/${training}`,'GET',undefined,firstCookie)).data.records,before);
     }
   });
+  await t.test('athlete analytics filter Türkiye dates, omit empty attempts and retain real zero success', async () => {
+    const person=(await request('/athletes','POST',{name:'Analysis',surname:'Fixture',branch:'Basketbol'},firstCookie)).data.id;
+    const sessions=[];
+    for(let i=0;i<4;i++) sessions.push((await request(`/athletes/${person}/trainings`,'POST',{},firstCookie)).data.id);
+    const localDb=new Database(database);
+    for(let i=0;i<4;i++) localDb.prepare('UPDATE trainings SET created_at=? WHERE id=?').run(
+      i===0?'2026-10-01 20:59:00':`2026-10-01 21:0${i}:00`,sessions[i]);
+    localDb.close();
+    const record=(attempted,made)=>({shot_type:'Sabit Catch & Shoot',points:[],attempted,made});
+    await request(`/trainings/${sessions[0]}`,'PUT',{records:[record(10,0)]},firstCookie);
+    await request(`/trainings/${sessions[2]}`,'PUT',{records:[record(0,0)]},firstCookie);
+    await request(`/trainings/${sessions[3]}`,'PUT',{records:[record(20,10)]},firstCookie);
+    const path=`/athletes/${person}/stats`;
+    const all=(await request(path,'GET',undefined,firstCookie)).data;
+    assert.deepEqual(all.progression.map(item=>item.pct),[0,50]);
+    assert.deepEqual(all.progression.map(item=>item.label),['1. Antrenman','4. Antrenman']);
+    assert.equal(all.shotTypeDistribution[0].value,33);
+    const selected=(await request(path+'?dateFrom=2026-10-02&dateTo=2026-10-02','GET',undefined,firstCookie)).data;
+    assert.equal(selected.progression.length,1);assert.equal(selected.progression[0].trainingId,sessions[3]);
+    assert.equal(selected.progression[0].totalAttempted,20);assert.equal(selected.shotTypeDistribution[0].value,50);
+    const empty=(await request(path+'?dateFrom=2026-10-03','GET',undefined,firstCookie)).data;
+    assert.deepEqual(empty,{progression:[],shotTypeDistribution:[]});
+    for(const query of ['dateFrom=2026-02-30','dateFrom=2026-10-03&dateTo=2026-10-02','dateTo=oops','dateFrom=a&dateFrom=b'])
+      assert.equal((await request(path+'?'+query,'GET',undefined,firstCookie)).status,400);
+    await request(`/athletes/${person}`,'DELETE',undefined,firstCookie);
+  });
   await t.test('another coach cannot read, change, delete or aggregate the first coach records', async () => {
     await request('/register','POST',{...account,email:'second@example.test'});
     secondCookie=(await request('/login','POST',{email:'second@example.test',password:account.password})).cookie;

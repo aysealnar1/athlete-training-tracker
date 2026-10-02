@@ -6,7 +6,7 @@ export function installTrainingsRoutes(app) {
   app.get('/api/athletes/:id/trainings', (req, res) => {
     try {
       const rows = db.prepare(
-        'SELECT t.*, (SELECT COUNT(*) FROM shot_records WHERE training_id = t.id) as record_count FROM trainings t WHERE athlete_id = ? ORDER BY t.created_at DESC'
+        'SELECT t.*, (SELECT COUNT(*) FROM shot_records WHERE training_id = t.id) as record_count FROM trainings t WHERE athlete_id = ? ORDER BY t.created_at DESC, t.id DESC'
       ).all(req.params.id);
       res.json(rows);
     } catch (err) {

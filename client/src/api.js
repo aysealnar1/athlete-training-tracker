@@ -86,6 +86,6 @@ export const api = {
   // Stats
   getBranchStats: (branch) =>
     request(`/stats/branch/${encodeURIComponent(branch)}`),
-  getAthleteStats: (id) =>
-    request(`/athletes/${id}/stats`),
+  getAthleteStats: (id, dateFrom = '', dateTo = '') =>
+    request(`/athletes/${id}/stats?${new URLSearchParams({dateFrom, dateTo})}`),
 };
