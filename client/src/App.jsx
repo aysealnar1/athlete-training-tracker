@@ -1,18 +1,18 @@
 import { createBrowserRouter, createRoutesFromElements, RouterProvider, Outlet, Route } from 'react-router-dom';
 import RequireAuth from './components/RequireAuth';
 import Welcome from './pages/Welcome';
-import Dashboard from './pages/Dashboard';
-import AthleteDetail from './pages/AthleteDetail';
-import Training from './pages/Training';
+const loadDashboard = async () => ({ Component: (await import('./pages/Dashboard')).default });
+const loadAthleteDetail = async () => ({ Component: (await import('./pages/AthleteDetail')).default });
+const loadTraining = async () => ({ Component: (await import('./pages/Training')).default });
 
 const router = createBrowserRouter(createRoutesFromElements(
   <Route element={<div className="app"><Outlet /></div>}>
     <Route path="/" element={<Welcome />} />
     <Route element={<RequireAuth />}>
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/athlete/:id" element={<AthleteDetail />} />
-      <Route path="/athlete/:athleteId/training/new" element={<Training />} />
-      <Route path="/athlete/:athleteId/training/:trainingId" element={<Training />} />
+      <Route path="/dashboard" lazy={loadDashboard} />
+      <Route path="/athlete/:id" lazy={loadAthleteDetail} />
+      <Route path="/athlete/:athleteId/training/new" lazy={loadTraining} />
+      <Route path="/athlete/:athleteId/training/:trainingId" lazy={loadTraining} />
     </Route>
   </Route>
 ));
