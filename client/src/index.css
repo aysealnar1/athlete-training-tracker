@@ -185,7 +185,7 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: 2000;
   padding: 1rem;
   padding-top: max(1rem, var(--safe-top));
   padding-bottom: max(1rem, var(--safe-bottom));
@@ -419,5 +419,21 @@ a:hover {
 
   .training-leave-actions .btn {
     flex: 1 1 100%;
+  }
+}
+
+/* Kapatma düğmesi menünün akışında kalır; form alanlarını örtmez. */
+.dashboard-menu-close {
+  display: none;
+}
+@media (max-width: 768px) {
+  .dashboard-menu-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 44px;
+    margin-bottom: 0.5rem;
+    flex-shrink: 0;
   }
 }

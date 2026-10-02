@@ -92,14 +92,14 @@ export default function Dashboard() {
   return (
     <div className="page">
     
-      <button 
+      {!isSidebarOpen && <button
         type="button" 
         className="hamburger-btn" 
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         aria-label="Menüyü Aç"
       >
-        {isSidebarOpen ? '✕' : '☰'}
-      </button>
+        ☰
+      </button>}
 
      
       {isSidebarOpen && (
@@ -108,6 +108,13 @@ export default function Dashboard() {
 
 
       <aside className={`sidebar-left ${isSidebarOpen ? 'open' : ''}`}>
+        <button
+          type="button"
+          className="btn btn-ghost dashboard-menu-close"
+          onClick={() => setIsSidebarOpen(false)}
+        >
+          ✕ Menüyü Kapat
+        </button>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', paddingBottom: '0.2rem' }}>
           <div style={{ display: 'inline-block', borderBottom: '2px solid var(--accent)', paddingBottom: '2px' }}>
             <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text)' }}>Genel Panel</span>
