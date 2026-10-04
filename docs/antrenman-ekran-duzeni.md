@@ -12,7 +12,7 @@ Kullanıcı kontrolü: geniş ve 390 piksel görünümde yerleşim, mevcut kayd�
 
 ## Tam saha görseli
 
-Kullanıcının sağladığı AI üretimi `client/src/assets/saha.png` yatay tam saha olarak kullanılır. Görsel değiştirilmeden SVG arka planına yerleştirilir; şut işaretleri ve bağlantıları ayrı bir katmandır. Masaüstünde saha yüksekliği ekranın %62’sini aşmaz; mobilde görsel oranı korunur.
+Kullanıcının sağladığı AI üretimi saha görseli, kayıpsız WebP biçimindeki `client/src/assets/saha.webp` dosyasıyla yatay tam saha olarak kullanılır. Dönüşümde 1672 × 940 çözünürlük ve RGBA piksel değerleri aynen korunur. Dosya boyutu 2.189.907 bayttan 960.756 bayta düşürülmüştür (yaklaşık %56 daha küçük). SVG arka planındaki şut işaretleri ve bağlantıları ayrı bir katmandır. Masaüstünde saha yüksekliği ekranın %62’sini aşmaz; mobilde görsel oranı korunur.
 
 Yeni noktalar `coordinate_space: "full-court"` ile 0–100 aralığında kaydedilir. Bu alanı olmayan eski yarı saha noktaları sol potaya göre görüntülenir; veritabanındaki eski koordinatlar değiştirilmez. Düzenlenen kayıtta eski ve yeni noktalar birlikte bulunabilir. Görselin dış boşluğuna tıklamak nokta eklemez. Nokta eşleşmesi ve eski/yeni kayıtların birlikte saklanması test edilir.
 

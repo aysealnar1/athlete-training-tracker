@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import courtImage from '../assets/saha.png';
+import courtImage from '../assets/saha.webp';
 import { fullCourtCoordinates, fullCourtDisplayPoint, FULL_COURT } from '../utils/court-coordinates';
 
 export default function CourtMap({ points = [], onPointAdd, maxPoints = 2, disabled }) {
