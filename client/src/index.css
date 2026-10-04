@@ -437,3 +437,224 @@ a:hover {
     flex-shrink: 0;
   }
 }
+
+
+/* Antrenman çalışma alanı: görsel referansa uyarlanan koyu tasarım. */
+.training-page { color: #edf3fa; background: #0b121c; }
+.training-header { padding: 1rem 1.5rem !important; gap: 1rem !important; }
+.training-header > div:first-child { gap: 1.25rem !important; }
+.training-heading h1 { color: #e5edf7; }
+.training-heading p { margin: .25rem 0 0; font-size: .875rem; color: #b8c7da; }
+.training-save-area { display: flex; align-items: center; gap: 1.25rem; }
+.training-save-status { display: flex; align-items: center; gap: .5rem; margin: 0; color: #b8c7da; font-size: .875rem; }
+.training-save-status span { width: 8px; height: 8px; border-radius: 50%; background: #25c779; flex-shrink: 0; }
+.training-save-status.is-pending span { background: var(--accent); }
+.training-page .training-sidebar { width: 280px !important; min-width: 280px; gap: .75rem; padding: 1.25rem; }
+.shot-menu-heading { display: flex; align-items: center; gap: .6rem; margin: 0; color: #f2f5fa; font-size: 1.1rem; }
+.shot-menu-intro { margin: -.5rem 0 .25rem; font-size: .875rem; color: #b8c7da; }
+.shot-type-option { display: flex; align-items: center; gap: .75rem; width: 100%; padding: .875rem; border-radius: 10px; border: 1px solid #344255; background: linear-gradient(120deg,#202d3e,#17212e); color: #eef3f9; text-align: left; cursor: pointer; }
+.shot-type-option:hover:not(:disabled) { border-color: #64758b; }
+.shot-type-option.is-selected { border-color: #ff7b18; background: linear-gradient(120deg,#58311b,#30241d); box-shadow: 0 0 0 1px #ff7b18; }
+.shot-type-icon, .shot-summary-icon { display: flex; align-items: center; justify-content: center; flex: 0 0 36px; height: 36px; border-radius: 50%; background: #354257; color: #c5d2e3; }
+.shot-type-option.is-selected .shot-type-icon, .shot-summary-icon { background: #ff7b18; color: #17212e; }
+.shot-type-option strong { display: block; font-size: .875rem; line-height: 1.4; }
+.shot-type-option small { display: block; margin-top: .25rem; color: #bccada; }
+.shot-type-option:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.shot-type-option:disabled { opacity: .65; cursor: default; }
+.training-help { border: 1px solid #318ac4; border-radius: 10px; padding: 1rem; background: #172435; }
+.training-help h4 { display: flex; gap: .5rem; align-items: center; color: #4fb4f4; margin: 0 0 .6rem; }
+.training-help p { margin: 0; font-size: .85rem; color: #c0ccdb; }
+.training-record-list { padding: 1rem; max-height: 240px; overflow-y: auto; flex-shrink: 0; }
+.training-record-list h4 { font-size: .9rem; color: #e3ebf5; }
+.training-page .training-record-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+.training-page .training-record-actions .btn { min-width: 0; width: 100%; padding: .6rem; }
+.training-page .training-main { display: block !important; padding: 1.5rem !important; }
+.training-workspace { max-width: 1180px; margin: 0 auto; padding: 1.25rem; border: 1px solid #2b394d; border-radius: 16px; background: linear-gradient(135deg,#121e2d,#0e1723); }
+.training-workspace-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+.training-workspace-heading h2 { font-size: 1.05rem; margin: 0; color: #e5edf7; }
+.training-workspace-heading span { color: #ffb174; font-size: .85rem; }
+.training-main .court-wrap { position: relative; width: 100%; height: auto; aspect-ratio: 2 / 1; min-height: 0; max-height: 58dvh; display: flex; justify-content: center; align-items: center; }
+.training-main .court-count-step { min-height: 380px; }
+.training-point-controls { margin-top: 1rem; padding: 1rem; display: grid !important; grid-template-columns: minmax(0,1fr) auto auto; gap: 1rem !important; background: #1a283a; border-color: #35465d; }
+.training-point-controls:hover, .training-workspace .training-step-card:hover, .training-record-list:hover { transform: none; }
+.shot-selection-summary { display: flex; align-items: center; gap: .75rem; }
+.shot-selection-summary h3 { margin: 0; color: #f2f5fa; font-size: 1rem; }
+.shot-selection-summary p { margin: .25rem 0 0; color: #bccada; font-size: .85rem; }
+.shot-point-count { border-left: 1px solid #435269; padding-left: 1rem; }
+.shot-point-count > span { display: block; color: #bccada; font-size: .8rem; }
+.shot-point-count strong { font-size: 1.5rem; color: #ff7b18; }
+.shot-point-count small { color: #eef3f9; font-size: 1.25rem; }
+.shot-secondary-actions { grid-column: 1 / -1; display: flex; gap: .5rem; flex-wrap: wrap; }
+.training-point-controls .shot-next { grid-column: 3; grid-row: 1; }
+.training-point-controls .shot-secondary-actions .btn { font-size: .8rem; min-width: 0; }
+@media (max-width: 1100px) {
+  .training-page .training-sidebar { width: 250px !important; min-width: 250px; padding: 1rem; }
+  .training-page .training-main { padding: 1rem !important; }
+  .training-point-controls { grid-template-columns: minmax(0,1fr) auto; }
+  .shot-selection-summary { grid-column: 1 / -1; }
+  .training-point-controls .shot-next { grid-column: 2; grid-row: 2; }
+  .shot-point-count { border: 0; padding: 0; }
+}
+@media (max-width: 768px) {
+  .training-page .training-sidebar { width: min(82vw,320px) !important; min-width: 0; max-height: 100dvh; height: 100dvh; }
+  .training-save-area { flex-wrap: wrap; gap: .75rem; }
+  .training-header { padding: 1rem !important; }
+  .training-save-status { font-size: .8rem; }
+  .training-page .training-main { padding: .75rem !important; }
+  .training-workspace { padding: .75rem; }
+  .training-main .court-wrap { max-height: none; }
+  .training-main .court-count-step { min-height: 420px; }
+  .training-point-controls { padding: .75rem; }
+  .shot-summary-icon { display: none; }
+  .shot-secondary-actions .btn { flex: 1 1 130px; }
+}
+
+/* Full-court artwork: contained, centered and capped on large desktops. */
+.training-workspace { max-width: 1080px; }
+.training-main .court-wrap { aspect-ratio: 1672 / 940; max-height: 56dvh; }
+.training-page .training-sidebar { width: 260px; min-width: 260px; }
+.training-record-list li { border-bottom: 1px solid #29384a; padding: .6rem 0 !important; }
+.training-record-list li:last-child { border-bottom: 0; }
+.training-record-actions { gap: .65rem; }
+@media (max-width: 768px) {
+  .training-page .training-sidebar { width: min(82vw, 320px); min-width: 0; }
+  .training-main .court-wrap { max-height: none; }
+}
+
+/* Slightly more compact training controls, retaining comfortable click targets. */
+.training-page .btn { min-height: 44px; min-width: 96px; padding: .55rem .9rem; font-size: .875rem; }
+.training-header { padding: .85rem 1.5rem !important; }
+.training-page .training-sidebar { gap: .55rem; padding: 1.1rem; }
+.shot-type-option { padding: .6rem .75rem; gap: .6rem; }
+.shot-type-icon, .shot-summary-icon { flex-basis: 32px; height: 32px; }
+.shot-type-option small { margin-top: .2rem; }
+.training-help, .training-record-list { padding: .85rem; }
+.training-page .training-record-actions .btn { min-width: 0; padding: .5rem .65rem; }
+.training-workspace { padding: 1.1rem; }
+.training-point-controls { padding: .85rem; gap: .85rem !important; margin-top: .85rem; }
+.training-step-card { padding: 1.25rem; }
+@media (max-width: 768px) {
+  .training-header { padding: .85rem !important; }
+  .training-workspace, .training-point-controls { padding: .75rem; }
+}
+
+/* Refined map layout and compact, independently scrolling record rows. */
+.training-page .training-main { padding: 1rem 1.25rem !important; }
+.training-workspace { width: 100%; max-width: min(1080px, calc(110.28dvh + 2.2rem)); }
+.training-main .court-wrap { max-height: 62dvh; }
+.training-workspace-heading { margin-bottom: .7rem; }
+.training-page .training-sidebar { gap: .55rem; }
+.training-sidebar > div:first-child { margin-bottom: .35rem !important; }
+.shot-type-option { padding: .55rem .7rem; }
+.shot-type-option.is-selected { box-shadow: inset 4px 0 #ff7b18, 0 0 0 1px #ff7b18; }
+.training-record-list { padding: .7rem 0 0; border-top: 1px solid #344255; max-height: none; overflow: visible; }
+.training-record-list h4 { display: flex; align-items: center; gap: .4rem; margin-bottom: .55rem; font-size: .85rem; }
+.training-record-rows { list-style: none; max-height: 240px; overflow-y: auto; display: grid; gap: .4rem; }
+.training-record-list .training-record-row { display: flex; align-items: center; gap: .45rem; padding: .4rem .45rem !important; border: 1px solid #2b3d52; border-radius: 8px; background: #172638; }
+.record-type-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; background: #ff7b18; }
+.record-type-1 { background: #3284ff; }
+.record-type-2 { background: #18c4a4; }
+.record-type-3 { background: #aa51ef; }
+.training-record-text { flex: 1; min-width: 0; }
+.training-record-text strong { display: block; color: #e3ebf5; font-size: .8rem; font-weight: 500; overflow-wrap: anywhere; line-height: 1.35; }
+.training-record-text span, .training-empty-records { color: #b8c7da; font-size: .8rem; }
+.training-page .training-record-actions { display: flex; gap: .1rem; flex-shrink: 0; }
+.record-icon-button { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; min-width: 44px; padding: 0; background: transparent; color: #c4d4e8; border-radius: 7px; }
+.record-delete-button { color: #ff5966; }
+.record-icon-button:hover:not(:disabled) { background: #2b3d52; }
+.record-icon-button:focus-visible { outline: 2px solid white; outline-offset: -2px; }
+.record-icon-button:disabled { opacity: .5; cursor: default; }
+.training-help { padding: .75rem; }
+.training-help h4 { font-size: .9rem; margin-bottom: .35rem; }
+.training-help p { font-size: .8rem; }
+.training-point-controls { padding: .7rem .8rem; gap: .65rem !important; margin-top: .7rem; }
+.training-page .btn { gap: .35rem; padding: .45rem .75rem; }
+.shot-point-count strong { font-size: 1.3rem; }
+@media (min-width: 1400px) {
+  .training-point-controls { grid-template-columns: minmax(170px, 1fr) auto; }
+  .training-point-controls .shot-next { grid-column: 2; grid-row: 2; }
+  .shot-point-count { grid-column: 2; grid-row: 1; }
+  .shot-secondary-actions { grid-column: 1; grid-row: 2; }
+}
+@media (max-width: 768px) {
+  .training-page .training-main { padding: .75rem !important; }
+  .training-workspace { max-width: 100%; }
+  .training-main .court-wrap { max-height: none; }
+  .training-point-controls { padding: .7rem; }
+}
+
+/* A slightly wider court at the same desktop height. */
+.training-workspace { max-width: min(1200px, calc(124dvh + 2.2rem)); }
+.training-main .court-wrap { aspect-ratio: 2 / 1; }
+@media (max-width: 768px) {
+  .training-workspace { max-width: 100%; }
+}
+
+/* Shorter header shifts the entire training layout upward in normal flow. */
+.training-header { padding: .45rem 1.5rem !important; gap: .65rem !important; }
+.training-heading h1 { line-height: 1.25; }
+.training-heading p { margin-top: .15rem; line-height: 1.35; }
+@media (max-width: 768px) {
+  .training-header { padding: .45rem 1rem !important; }
+}
+
+/* Keep the point counter and next action together in one compact row. */
+.training-point-controls { grid-template-columns: minmax(0, 1fr) auto; padding: .55rem .7rem; margin-top: .45rem; gap: .55rem .8rem !important; }
+.training-control-progress { grid-column: 2; grid-row: 1; display: flex; align-items: center; gap: .75rem; }
+.training-control-progress .shot-point-count { padding-left: .75rem; grid-column: auto; grid-row: auto; }
+.training-control-progress .shot-point-count > span { font-size: .75rem; }
+.training-control-progress .shot-point-count strong { font-size: 1.2rem; line-height: 1.25; }
+.training-control-progress .shot-point-count small { font-size: 1.1rem; }
+.training-point-controls .training-control-progress .shot-next { grid-column: auto; grid-row: auto; min-width: 90px; min-height: 44px; padding: .4rem .65rem; white-space: nowrap; }
+.training-point-controls .shot-selection-summary { grid-column: 1; grid-row: 1; }
+.training-point-controls .shot-secondary-actions { grid-column: 1 / -1; grid-row: 2; }
+.training-point-controls .shot-selection-summary p { margin-top: .15rem; }
+@media (max-width: 1100px) {
+  .training-point-controls .shot-selection-summary { grid-column: 1 / -1; }
+  .training-control-progress { grid-column: 1 / -1; grid-row: 2; justify-content: flex-end; }
+  .training-control-progress .shot-point-count { border-left: 0; padding-left: 0; }
+  .training-point-controls .shot-secondary-actions { grid-row: 3; }
+}
+@media (max-width: 480px) {
+  .training-control-progress { gap: .6rem; justify-content: space-between; }
+}
+
+/* Short help text leaves more room for the court and current records. */
+.training-help { padding: .55rem .65rem; flex-shrink: 0; }
+.training-help h4 { font-size: .85rem; margin-bottom: .25rem; gap: .4rem; }
+.training-help h4 svg { width: 16px; height: 16px; }
+.training-help p { font-size: .8rem; line-height: 1.35; }
+
+/* Explicit field colors prevent light inherited text on the browser's white default. */
+.training-step-card input { background: #101b2b; color: #f2f5fa; caret-color: #ff923e; border: 1px solid #63758c; border-radius: 8px; color-scheme: dark; }
+.training-step-card input:focus-visible { outline: 2px solid #ff923e; outline-offset: 2px; }
+.training-step-card input::placeholder { color: #b8c7da; opacity: 1; }
+.training-step-card input::selection { background: #ff923e; color: #101b2b; }
+
+/* Compact wizard actions sized to their labels rather than the whole dialog. */
+.training-step-actions { grid-template-columns: repeat(2, max-content); justify-content: center; gap: .6rem; }
+.training-step-card .training-step-actions .btn { min-width: 0; width: auto; min-height: 44px; padding: .4rem .7rem; font-size: .85rem; }
+.training-step-card .training-step-primary { justify-self: center; min-width: 136px !important; padding-inline: 1rem !important; }
+@media (max-width: 480px) {
+  .training-step-actions { grid-template-columns: minmax(0, 1fr); }
+  .training-step-card .training-step-actions .btn { justify-self: center; max-width: 100%; }
+}
+
+/* Mobile number entry uses normal flow rather than stretching the court. */
+@media (max-width: 768px) {
+  .training-header > div:first-child,
+  .training-heading,
+  .training-save-area { min-width: 0; max-width: 100%; }
+  .training-heading { flex-basis: 100%; }
+  .training-heading p { overflow-wrap: anywhere; }
+  .training-save-area { width: 100%; justify-content: space-between; }
+  .training-save-status { flex: 1; min-width: 0; }
+  .training-main .court-count-step { min-height: 0; aspect-ratio: auto; max-height: none; }
+  .training-main .court-count-step > svg { display: none !important; }
+  .training-count-overlay { position: static !important; width: 100%; min-width: 0; flex: 0 0 100%; padding: .4rem 0; background: transparent !important; }
+  .training-count-overlay .training-step-card { width: 100%; max-width: 360px; min-width: 0; margin: 0; padding: 1rem; border: 1px solid #35465d; border-radius: 12px; }
+  .training-step-card input { min-width: 0; max-width: 100%; }
+  .training-step-card .training-step-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+  .training-step-card .training-step-actions .btn { width: 100%; justify-self: stretch; white-space: normal; padding: .45rem .35rem; }
+  .training-step-card .training-step-primary { width: auto !important; justify-self: center !important; max-width: 100%; }
+}

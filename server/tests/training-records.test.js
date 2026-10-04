@@ -32,3 +32,14 @@ test('a failed second insert rolls back deletion and the first insert', () => {
     assert.equal(db.prepare('SELECT COUNT(*) AS count FROM shot_records').get().count,0);
   } finally { db.close(); }
 });
+
+test('full court coordinate metadata survives saving alongside legacy points', () => {
+  const db = new Database(':memory:');
+  try {
+    db.exec('CREATE TABLE shot_records (id INTEGER PRIMARY KEY, training_id INTEGER, shot_type TEXT, points_json TEXT, attempted INTEGER, made INTEGER)');
+    const mixed = {...record, points:[{x:50,y:90},{x:80,y:25,coordinate_space:'full-court'}]};
+    assert.equal(validateRecords([mixed]),null);
+    createRecordWriter(db)(1,[mixed]);
+    assert.deepEqual(JSON.parse(db.prepare('SELECT points_json FROM shot_records').get().points_json),mixed.points);
+  } finally { db.close(); }
+});

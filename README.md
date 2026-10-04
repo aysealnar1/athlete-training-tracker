@@ -112,7 +112,7 @@ node --test client/tests/*.test.js
 npm run build --prefix client
 ```
 
-2 Ekim 2026 doğrulamasında **20 sunucu testi ve 6 web yardımcı işlev testi geçti**; web üretim derlemesi tamamlandı. Sunucu testleri geçici veritabanları kullanır; mevcut sporcu kayıtlarını değiştirmez. Bu testler tarayıcı arayüz testleri değildir.
+3 Ekim 2026 doğrulamasında **21 sunucu testi**, **10 web yardımcı işlev testi geçti**; web üretim derlemesi tamamlandı. Sunucu testleri geçici veritabanları kullanır; mevcut sporcu kayıtlarını değiştirmez. Bu testler tarayıcı arayüz testleri değildir.
 
 Yerel tarayıcı kontrollerinde sporcu ekleme/düzenleme, otomatik yaş, cinsiyet, takvimle filtreleme, şut kaydı düzenleme/silme, kaydedilmemiş değişiklik uyarısı, iptal sonrası kayıtların korunması ve antrenman adresinde sayfa yenileme kontrol edildi. Çıkış ve yeniden giriş sonrası kayıtlar korundu; çıkıştan sonra geri düğmesiyle korumalı panele erişilemedi.
 
@@ -155,3 +155,5 @@ Uygulanan değişikliklerin ayrıntıları:
 - [Şut kayıtları ve kaydedilmemiş değişiklikler](docs/antrenman-kayitlari.md)
 - [Analiz tarih filtresi](docs/analiz-tarih-filtresi.md)
 - [Sayfaların ihtiyaç olduğunda yüklenmesi](docs/sayfa-yukleme.md)
+
+- [Antrenman ekranı tasarımı ve koordinat dönüşümü](docs/antrenman-ekran-duzeni.md)

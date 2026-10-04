@@ -1,3 +1,4 @@
+import { Target, Activity, CircleDot, Shuffle, Info, Save, ArrowRight, Pencil, Trash2, List, Undo2, X } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link, useBlocker } from 'react-router-dom';
 import { api } from '../api';
@@ -5,10 +6,10 @@ import CourtMap from '../components/CourtMap';
 import { trainingPayload, recordsSnapshot, parseShotCount, replaceRecord } from '../utils/training-records';
 
 const SHOT_TYPES = [
-  { id: 'Sabit Catch & Shoot', label: 'Sabit Catch & Shoot', maxPoints: 1 },
-  { id: 'Hareketli Catch & Shoot', label: 'Hareketli Catch & Shoot', maxPoints: 2 },
-  { id: 'Dribling Üzeri', label: 'Dribling Üzeri Şut', maxPoints: 2 },
-  { id: 'Crossover Üzeri', label: 'Crossover Üzeri Şut', maxPoints: null },
+  { id: 'Sabit Catch & Shoot', label: 'Sabit Catch & Shoot', maxPoints: 1, Icon: Target },
+  { id: 'Hareketli Catch & Shoot', label: 'Hareketli Catch & Shoot', maxPoints: 2, Icon: Activity },
+  { id: 'Dribling Üzeri', label: 'Dribling Üzeri Şut', maxPoints: 2, Icon: CircleDot },
+  { id: 'Crossover Üzeri', label: 'Crossover Üzeri Şut', maxPoints: null, Icon: Shuffle },
 ];
 
 export default function Training() {
@@ -233,9 +234,11 @@ export default function Training() {
     );
   }
 
+  const selectedType = SHOT_TYPES.find(type => type.id === currentType);
+
   return (
     <div className="page training-page" style={{ flexDirection: 'column' }}>
-      <header
+      <header className="training-header"
         style={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -279,7 +282,7 @@ export default function Training() {
             ← Sporcuya Dön
           </Link>
 
-          <h1
+          <div className="training-heading"><h1
             style={{
               fontSize: 'clamp(1rem, 4vw, 1.25rem)',
               margin: 0,
@@ -293,9 +296,14 @@ export default function Training() {
               : trainingNumber != null
                 ? `${trainingNumber}. Antrenman`
                 : 'Antrenman'}
-          </h1>
+          </h1><p>Şut konumlarını ve isabet sayılarını kaydedin.</p></div>
         </div>
 
+        <div className="training-save-area">
+          <p role="status" className={`training-save-status ${hasUnsavedChanges ? 'is-pending' : ''}`}>
+            <span aria-hidden="true" />
+            {saving ? 'Kaydediliyor…' : hasDraft ? 'Şut kaydı tamamlanıyor' : hasUnsavedChanges ? 'Kaydedilmemiş değişiklikler' : 'Tüm değişiklikler kaydedildi'}
+          </p>
         <button
           type="button"
           className="btn"
@@ -303,8 +311,8 @@ export default function Training() {
           disabled={saving || hasDraft}
           style={{ flexShrink: 0 }}
         >
-          {saving ? 'Kaydediliyor...' : 'Kaydet'}
-        </button>
+          <Save size={19} aria-hidden="true" /> {saving ? 'Kaydediliyor...' : 'Kaydet'}
+        </button></div>
       </header>
 
       {isMobile && sidebarOpen && (
@@ -337,6 +345,7 @@ export default function Training() {
                   borderRight: '1px solid var(--border)',
                   overflowY: 'auto',
                   padding: '1rem',
+                  maxHeight: '100dvh',
                 }
               : undefined
           }
@@ -350,7 +359,7 @@ export default function Training() {
               marginBottom: '1rem',
             }}
           >
-            <h3 style={{ margin: 0, fontSize: '1rem' }}>Şut Tipleri</h3>
+            <h3 className="shot-menu-heading"><Target size={21} aria-hidden="true" /> Şut Tipleri</h3>
 
             {isMobile && (
               <button
@@ -368,17 +377,14 @@ export default function Training() {
             )}
           </div>
 
+          <p className="shot-menu-intro">Kayıt yapmak istediğiniz şut tipini seçin.</p>
           {SHOT_TYPES.map((t) => (
             <button
               key={t.id}
               type="button"
-              className="list-item"
-              style={{
-                textAlign: 'left',
-                width: '100%',
-                background: currentType === t.id ? 'var(--surface2)' : undefined,
-                borderColor: currentType === t.id ? 'var(--accent)' : undefined,
-              }}
+              className={`shot-type-option ${currentType === t.id ? 'is-selected' : ''}`}
+              aria-pressed={currentType === t.id}
+              disabled={saving || step !== 'select'}
               onClick={() => {
                 if (saving || step !== 'select' || (hasDraft && !discardDraft())) return;
 
@@ -387,19 +393,34 @@ export default function Training() {
                 setSidebarOpen(false);
               }}
             >
-              {t.label}
-              {t.maxPoints === 1 && ' (1 nokta)'}
-              {(t.maxPoints === 2 || t.maxPoints === null) &&
-                ` (${t.maxPoints == null ? 'Sınırsız nokta' : '2 nokta'})`}
+              <span className="shot-type-icon"><t.Icon size={22} aria-hidden="true" /></span>
+              <span><strong>{t.label}</strong><small>({t.maxPoints == null ? 'Sınırsız nokta' : `${t.maxPoints} nokta`})</small></span>
             </button>
           ))}
 
-          <div className="card">
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-              Şut türünü seçin, sahada noktaları işaretleyin, ardından &quot;Sıradaki&quot; ile
-              atılan / isabetli sayıları girin.
-            </p>
+          <section className="training-record-list" aria-labelledby="training-records-heading">
+            <h4 id="training-records-heading"><List size={18} aria-hidden="true" /> Bu antrenmandaki kayıtlar ({records.length})</h4>
+            {records.length === 0 ? <p className="training-empty-records">Henüz şut kaydı eklenmedi.</p> : (
+              <ul className="training-record-rows">
+                {records.map((r, i) => (
+                  <li key={i} className="training-record-row">
+                    <span className={`record-type-dot record-type-${Math.max(0, SHOT_TYPES.findIndex(type => type.id === r.shot_type))}`} aria-hidden="true" />
+                    <div className="training-record-text"><strong>{SHOT_TYPES.find(type => type.id === r.shot_type)?.label || r.shot_type}</strong><span>{r.made} / {r.attempted} isabet</span></div>
+                    <div className="training-record-actions">
+                      <button type="button" className="record-icon-button" disabled={saving} onClick={() => editRecord(i)} title="Düzenle" aria-label={`${i + 1}. şut kaydını düzenle`}><Pencil size={18} aria-hidden="true" /></button>
+                      <button type="button" className="record-icon-button record-delete-button" disabled={saving} onClick={() => deleteRecord(i)} title="Sil" aria-label={`${i + 1}. şut kaydını sil`}><Trash2 size={18} aria-hidden="true" /></button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <div className="training-help">
+            <h4><Info size={18} aria-hidden="true" /> Nasıl kullanılır?</h4>
+            <p>Şut tipini seçip noktaları işaretleyin. Sıradaki ile deneme ve isabet sayılarını girin.</p>
           </div>
+
         </aside>
 
         <main
@@ -413,11 +434,11 @@ export default function Training() {
           }}
           className="training-main"
         >
-          <p role="status" style={{margin: 0}}>
-            {editingIndex !== null ? `${editingIndex + 1}. şut kaydı düzenleniyor. ` : ''}
-            {hasDraft ? 'Kaydı tamamlayın veya iptal edin; ardından antrenmanı kaydedin.' : hasUnsavedChanges ? 'Kaydedilmemiş değişiklikler var.' : 'Kayıtlar güncel.'}
-          </p>
-          <div style={{ flex: 1, minHeight: 360, position: 'relative' }} className="court-wrap">
+          <section className="training-workspace" aria-labelledby="shot-map-heading">
+          <div className="training-workspace-heading"><h2 id="shot-map-heading">Antrenman Şut Haritası</h2>
+            {editingIndex !== null && <span>{editingIndex + 1}. kayıt düzenleniyor</span>}
+          </div>
+          <div className={`court-wrap ${step !== 'select' ? 'court-count-step' : ''}`}>
             <CourtMap
               points={currentPoints}
               onPointAdd={addPoint}
@@ -431,6 +452,7 @@ export default function Training() {
 
             {(step === 'attempted' || step === 'made') && (
               <div
+                className="training-count-overlay"
                 style={{
                   position: 'absolute',
                   inset: 0,
@@ -458,7 +480,7 @@ export default function Training() {
                         min="0"
                         max="1000000"
                         step="1"
-                        autoFocus
+                        autoFocus={!isMobile}
                         value={attemptedInput}
                         onChange={(e) => setAttemptedInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && goNext()}
@@ -484,7 +506,7 @@ export default function Training() {
                         min="0"
                         max={attemptedInput || 0}
                         step="1"
-                        autoFocus
+                        autoFocus={!isMobile}
                         value={madeInput}
                         onChange={(e) => setMadeInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && goNext()}
@@ -521,7 +543,7 @@ export default function Training() {
           </div>
 
           <div
-            className="card"
+            className="card training-point-controls"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -530,49 +552,31 @@ export default function Training() {
               gap: '0.75rem',
             }}
           >
+            <div className="shot-selection-summary">
+              <span className="shot-summary-icon"><Target size={24} aria-hidden="true" /></span>
+              <div><h3>{selectedType?.label || 'Şut tipi seçin'}</h3>
+                <p>{selectedType ? selectedType.maxPoints == null ? 'Sahada şut noktalarını işaretleyin.' : `Sahada ${selectedType.maxPoints} nokta işaretleyin.` : 'Sol menüden bir şut tipi seçerek başlayın.'}</p>
+              </div>
+            </div>
+            <div className="training-control-progress">
+            <div className="shot-point-count"><span>İşaretlenen noktalar</span><strong>{currentPoints.length}<small> / {selectedType?.maxPoints ?? (selectedType ? '∞' : '—')}</small></strong></div>
             {step === 'select' && (
-              <p style={{ color: 'var(--text-muted)', margin: 0 }}>
-                {currentType
-                  ? currentPoints.length
-                    ? `Nokta sayısı: ${currentPoints.length}`
-                    : 'Sahada nokta işaretleyin.'
-                  : 'Önce sol taraftan şut tipi seçin.'}
-              </p>
-            )}
-
-            {currentType && step === 'select' && (
-              <>
-                <button type="button" className="btn training-secondary" disabled={saving || !currentPoints.length} onClick={() => setCurrentPoints(previous => previous.slice(0,-1))}>Son Noktayı Geri Al</button>
-                <button type="button" className="btn training-secondary" disabled={saving || !currentPoints.length} onClick={() => setCurrentPoints([])}>Noktaları Temizle</button>
-                <button type="button" className="btn training-secondary" disabled={saving} onClick={discardDraft}>Kaydı İptal Et</button>
-              </>
-            )}
-            {step === 'select' && (
-              <button type="button" className="btn" onClick={goNext} style={{ marginLeft: 'auto' }}>
-                Sıradaki
+              <button type="button" className="btn shot-next" onClick={goNext} disabled={!selectedType || saving || (selectedType.maxPoints !== null && currentPoints.length < selectedType.maxPoints) || !currentPoints.length}>
+                Sıradaki <ArrowRight size={19} aria-hidden="true" />
               </button>
             )}
-          </div>
-
-          {records.length > 0 && (
-            <div className="card">
-              <h4 style={{ marginBottom: '0.5rem' }}>
-                Bu antrenmandaki kayıtlar ({records.length})
-              </h4>
-
-              <ul style={{ listStyle: 'none', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-                {records.map((r, i) => (
-                  <li key={i} className="animate-fade-in-up" style={{ padding: '0.25rem 0' }}>
-                    <span>{i + 1}. {r.shot_type}: {r.made}/{r.attempted} isabet</span>
-                    <div className="training-record-actions">
-                      <button type="button" className="btn" disabled={saving} onClick={() => editRecord(i)} aria-label={`${i + 1}. şut kaydını düzenle`}>Düzenle</button>
-                      <button type="button" className="btn btn-danger" disabled={saving} onClick={() => deleteRecord(i)} aria-label={`${i + 1}. şut kaydını sil`}>Sil</button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
             </div>
-          )}
+
+            {currentType && step === 'select' && (
+              <div className="shot-secondary-actions">
+                <button type="button" className="btn training-secondary" disabled={saving || !currentPoints.length} onClick={() => setCurrentPoints(previous => previous.slice(0,-1))}><Undo2 size={16} aria-hidden="true" /> Son Noktayı Geri Al</button>
+                <button type="button" className="btn training-secondary" disabled={saving || !currentPoints.length} onClick={() => setCurrentPoints([])}><Trash2 size={16} aria-hidden="true" /> Noktaları Temizle</button>
+                <button type="button" className="btn training-secondary" disabled={saving} onClick={discardDraft}><X size={16} aria-hidden="true" /> Kaydı İptal Et</button>
+              </div>
+            )}
+
+          </div>
+          </section>
         </main>
       </div>
       {blocker.state === 'blocked' && (
